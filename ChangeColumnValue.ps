@@ -1,0 +1,31 @@
+
+#important utiliser useweblogin
+
+Connect-PnPOnline -Url $url -UseWebLogin
+
+# Recuperation de la list (Pages ici)
+$allPAges = Get-PnPListItem -List "Pages"
+
+# Pour chaque element de la liste - verifier la condition
+Foreach($element in $allPAges) { if ($element["PublishingPageImage"] -like "*expressionrecherchee*") {
+        
+# recuperation de l'url relative et de l'id
+   Write-Host   "ID de l'element : " $element.ID;
+   $relativeUrl = $element["FileRef"];
+   $id = $element.ID
+   Write-Host   "URL d'origine de l'image de l'element : "  $element["PublishingPageImage"];
+   $newImageUrl =  $element["PublishingPageImage"] -replace "expressionrecherchee" , "nouvelleexpression"
+
+        
+# extraire la page Sharepoint
+   Write-Host   "extraction de la page : "  $element["FileLeafRef"];
+   Set-PnPFileCheckedOut -url $relativeUrl
+        
+# Set la valeur
+   Set-PnPListItem -List "Pages" -Identity $id -Values @{"PublishingPageImage" = $newImageUrl }
+   Write-Host   "nouvelle URL : "  $element["PublishingPageImage"];
+# Archiver la page (la publier avec MajorCheckin)
+   Write-Host   "Archivage de la page"
+   Set-PnPFileCheckedIn -Url $relativeUrl -CheckinType MajorCheckin
+    
+} }
